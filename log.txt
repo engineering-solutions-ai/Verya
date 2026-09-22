@@ -1,0 +1,198 @@
+# Verya — Change Log
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:02:07 IST] Repository bootstrap — platform foundation docs
+────────────────────────────────────────────────────────────────
+CONTEXT
+  Verya repo was empty (zero commits). team-ai-knowledge-engine had
+  ~6,200 lines of design docs but no code. Nothing was sunk, so
+  platform foundations were established before implementation.
+
+DECISIONS RECORDED (from user)
+  - Verya scope      : full platform, including billing
+  - Repo topology    : polyrepo, one repo per service
+  - Tenancy          : pooled multi-tenant + dedicated-deploy tier
+  - Audience         : external enterprise pilots
+  - Assumption made  : verya-sdk is the one shared dependency across
+                       the polyrepo, published from this repo, because
+                       token verification must not be reimplemented
+                       per service. Flagged to user for objection.
+
+ADDED
+  - README.md                     Repo entry point, decisions, doc index
+  - docs/platform/overview.md     What Verya is, principles, trust
+                                  boundaries, v1 scope, portfolio
+  - docs/platform/architecture.md Component map, stack + vendor
+                                  rationale, request path, pooled vs
+                                  dedicated topology, Fly process
+                                  layout, degradation matrix,
+                                  environments, repo layout
+  - docs/platform/tenancy.md      org_id rule, Postgres RLS policies,
+                                  connection roles, index rules, vector
+                                  index scaling cliff, dedicated tier,
+                                  tenant lifecycle, export/purge,
+                                  tenancy test suite, new-table checklist
+  - docs/adr/                     Created, empty
+
+REMOVED
+  Nothing. Repository was empty.
+
+OPEN / NEXT
+  - docs/platform/identity.md         token format, JWKS, SSO, scopes
+  - docs/platform/billing.md          plans, meters, Stripe, quotas
+  - docs/platform/service-contract.md what a service must implement
+  - Delta doc for team-ai-knowledge-engine: its current schema has
+    no tenant column, and users/teams/jwt_token duplicate what the
+    platform will own. Must be resolved before its code is written.
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:07:28 IST] First customer-facing surface — landing page
+────────────────────────────────────────────────────────────────
+ADDED
+  - apps/web/index.html   Static landing page for Verya, leading with
+                          the Knowledge Engine pilot. Sections: hero
+                          (session -> memory card example), problem,
+                          how it works (capture/distil/recall), IDE
+                          support + MCP config, security review Q&A,
+                          platform, estimated impact (labelled as an
+                          estimate), pilot application form.
+  - Published preview: https://claude.ai/artifact/DBRgJAzeTKwTztN9jGMntT
+    Pilot applications are saved privately (applications/<viewer id>),
+    readable only by the page owner/editors.
+
+NOTES
+  - Form works only in the preview. The standalone site needs a real
+    submit endpoint (the control plane API does not exist yet).
+  - Impact figures come from team-ai-knowledge-engine docs and are
+    stated on the page as estimates, not measured results.
+  - knowledge.verya.ai in the MCP example is a placeholder domain.
+
+REMOVED
+  Nothing.
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:11:43 IST] Landing page redesign — "the page that forgets"
+────────────────────────────────────────────────────────────────
+CHANGED
+  - apps/web/index.html   Full rewrite. Page now demonstrates the
+                          product instead of describing it: paragraphs
+                          blur as they scroll up, five phrases get
+                          highlighted and stay sharp, top bar shows time
+                          on page and "kept N / 5", ending ("Session
+                          ended.") shows the kept lines as memory cards.
+                          Security section is a plain memo with a live
+                          API-key redaction. Form reduced to "Leave your
+                          work email. We'll remember it."
+  - Same preview URL, version 2.
+
+REMOVED (and why)
+  - Section label + heading + subheading pattern, 3-column problem grid,
+    numbered 1-2-3 steps, big-number stat block, checkmark lists, nav
+    menu: user said the page read as AI-written; these template
+    patterns were the main cause.
+  - Product/tool feature bullets: replaced by one story (Priya/Marcus)
+    that carries the same information.
+
+KEPT
+  - Pilot form storage rules, estimate wording (still marked as an
+    estimate), security claims (still design-stage, see earlier note).
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:16:30 IST] Landing page visual redesign — time-of-day colour story
+────────────────────────────────────────────────────────────────
+CHANGED
+  - apps/web/index.html   Visual layer rebuilt; interaction (fade,
+                          keep, counter, reveal, redaction, form)
+                          unchanged. Background, text and highlight
+                          colours now blend by scroll through the
+                          story: coral afternoon -> amber -> violet dusk
+                          -> indigo night -> teal pre-dawn -> slate memo
+                          -> sunrise reveal -> pink form. Added a fixed
+                          sun/moon disc that sets and rises, drifting
+                          prompt fragments on a canvas, a headline that
+                          fades three letters of "everything", a tilted
+                          paper memo with a red stamp, and a typographic
+                          poster ending showing when each line was kept.
+                          Fonts: Bodoni Moda, Newsreader, JetBrains Mono.
+  - Same preview URL, version 3.
+
+REMOVED (and why)
+  - Flat white/yellow palette, Instrument Serif, bordered card grid in
+    the reveal: user said the UI looked standard and asked for creative
+    colour and design for a CEO demo.
+  - Light/dark theme following: the page now uses its own scroll-driven
+    palette on purpose, so it paints every colour explicitly.
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:31:05 IST] Landing page fixes after user review (version 4)
+────────────────────────────────────────────────────────────────
+CHANGED
+  - apps/web/index.html
+    * Headline: forgotten letters of "everything" now turn into hollow
+      outlines instead of fading to near-invisible. User said the word
+      was not readable.
+    * Italic display type: pinned a sturdier optical size (opsz 26) and
+      weight 500 on large Bodoni lines. Display-size hairlines were
+      vanishing, so letters looked broken ("Il keeps", "servtce").
+      Moved the rule to the end of the stylesheet because the font
+      shorthand on those elements was resetting it.
+    * Colour timing: a section now owns the colour while it holds the
+      middle of the screen, blending only in a short band at each
+      boundary. Before, colours ran a section ahead (amber barely seen,
+      phones skipped the coral opening, pink bled into the reveal).
+    * Colour blending moved from RGB to OKLCH so warm-to-cool steps
+      pass through rose instead of muddy brown.
+    * Final form section: pink (#FF3D6E) replaced with ultramarine
+      (#1F2BD6) and white text. User did not like the pink.
+    * Sun/moon halo: box-shadow replaced with a radial-gradient halo;
+      removed the top bar background that cut across it. Both caused
+      a visible hard-edged rectangle.
+    * Drifting prompt fragments: dissolve near any readable element,
+      and stop entirely at "Session ended." and the form.
+    * Moon lowered in teal and memo sections so it no longer sits
+      behind the kept counter. Poster kept clear of the sun. Phone
+      headline wraps cleanly. Highlight padding tightened.
+
+REMOVED (and why)
+  - Pink form colour: user feedback.
+  - Top bar background gradient: caused a hard band across the sun;
+    text beneath it is already faded by the forgetting effect.
+
+VERIFIED
+  - Headless Chrome screenshots at 1440x900 and 400x860 of hero,
+    story, blend midpoint, teal, memo, reveal and form.
+
+────────────────────────────────────────────────────────────────
+[2026-09-22 11:41:04 IST] Prepare repo for GitHub PR and GitHub Pages hosting
+────────────────────────────────────────────────────────────────
+ADDED
+  - tools/build-site.mjs      Wraps apps/web/index.html (a page body, so it
+                              can still be published as an artifact) in a
+                              full HTML document with charset + viewport;
+                              writes dist/index.html and dist/.nojekyll.
+  - tools/screenshots.mjs     Headless Chrome over DevTools protocol;
+                              scrolls like a reader and captures 11 shots
+                              into docs/screenshots/.
+  - docs/screenshots/*.png    Desktop 1440x900 and phone 400x860 captures
+                              of the current page, for the PR description.
+  - .github/workflows/site.yml  Builds on PRs; deploys dist/ to GitHub
+                              Pages on push to main.
+  - .gitignore, apps/web/README.md
+
+CHANGED
+  - apps/web/index.html  Pilot form: when there is no artifact database
+                         (e.g. on GitHub Pages) it opens the visitor's
+                         email app with the application filled in, sent
+                         to form[data-pilot-email]. Left empty for now:
+                         no team inbox has been chosen.
+  - README.md            Website section; removed the claim that
+                         decisions are recorded in docs/adr/ (it is empty).
+
+REMOVED
+  Nothing.
+
+OPEN
+  - Org is on the GitHub Free plan and the repo is private: GitHub Pages
+    will not serve it until the repo is public or the plan is upgraded.
+    Asked the user.
+
