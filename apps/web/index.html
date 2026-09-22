@@ -1,0 +1,730 @@
+<title>Verya</title>
+<meta name="description" content="This page forgets almost everything you read. Verya's Knowledge Engine keeps what matters from every AI session your team closes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* This page commits to its own visual world: the palette is the story's
+   time of day and is driven by scroll, so it ignores the viewer's theme
+   on purpose. Every colour is painted explicitly. */
+:root {
+  --bg: #FF5A36;
+  --fg: #1A0A06;
+  --glow: #FFF3B0;
+  --orb: #FFE66B;
+  --orb-y: 18vh;
+  --kept-ink: #140A12;
+  --paper: #F4EFE4;
+  --paper-ink: #1B1B1F;
+  --stamp: #D7263D;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --read: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --col: 38rem;
+  --indent: clamp(0px, 12vw, 210px);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1.22rem/1.62 var(--read);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+::selection { background: var(--glow); color: var(--kept-ink); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+/* ---------- sky: orb + drifting fragments ---------- */
+.sky { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.orb {
+  position: absolute;
+  right: -7vmin;
+  top: var(--orb-y);
+  width: clamp(140px, 30vmin, 340px);
+  aspect-ratio: 1;
+  max-width: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, color-mix(in srgb, var(--orb) 55%, #fff) 0%, var(--orb) 46%, color-mix(in srgb, var(--orb) 70%, var(--bg)) 100%);
+  transform: translateY(-50%);
+}
+/* halo drawn as a soft gradient, not a box-shadow, so it has no hard edge */
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: -70%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--orb) 42%, transparent) 0%, color-mix(in srgb, var(--orb) 14%, transparent) 38%, transparent 68%);
+}
+#dust { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.bar, main, footer { position: relative; z-index: 1; }
+
+/* ---------- session bar ---------- */
+.bar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px clamp(16px, 4vw, 48px);
+  font: 400 .76rem/1 var(--mono);
+  letter-spacing: .04em;
+}
+.word { font: italic 500 1.7rem/1 var(--display); text-decoration: none; letter-spacing: -.02em; }
+.meter { display: flex; gap: 20px; font-variant-numeric: tabular-nums; }
+.meter b { font-weight: 500; }
+.kept-count { padding: 5px 9px; margin: -5px -9px; border-radius: 99px; transition: background-color .5s ease, color .5s ease; border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent); }
+.kept-count.pulse { background: var(--glow); color: var(--kept-ink); border-color: var(--glow); }
+
+.page { padding-inline: clamp(16px, 4vw, 48px); }
+.col { max-width: var(--col); margin-left: var(--indent); }
+
+/* ---------- opening ---------- */
+.open { padding-block: clamp(36px, 8vh, 96px) clamp(80px, 16vh, 180px); }
+.open h1 { margin: 0; font-weight: 400; font-family: var(--display); line-height: .9; letter-spacing: -.025em; }
+.h-a, .h-c { display: block; font-size: clamp(2rem, 5.2vw, 4.6rem); }
+.h-a { margin-left: var(--indent); }
+.h-b {
+  display: block;
+  font-style: italic;
+  font-size: clamp(4.2rem, 18.5vw, 19rem);
+  line-height: .86;
+  letter-spacing: -.045em;
+  margin-block: .02em .06em;
+}
+.h-c { text-align: right; padding-right: 8vw; }
+.h-b .l { display: inline-block; -webkit-text-stroke: 0 transparent; transition: color 1.8s ease, -webkit-text-stroke-color 1.8s ease, transform 2.4s cubic-bezier(.3,.6,.2,1); }
+/* a forgotten letter keeps its outline: the word stays readable, the joke still lands */
+.h-b .l.lost { color: transparent; -webkit-text-stroke: clamp(1px, .14vw, 2.5px) var(--fg); transform: translateY(.035em); }
+.open p { margin: 36px 0 0 var(--indent); max-width: 25em; font-size: 1.28rem; }
+.down { display: inline-flex; gap: 10px; align-items: center; margin: 44px 0 0 var(--indent); font: 400 .74rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.down::before { content: ""; width: 44px; height: 1px; background: currentColor; }
+
+/* ---------- story ---------- */
+.chapter { padding-block: clamp(40px, 8vh, 90px) clamp(110px, 22vh, 240px); }
+.beat { position: relative; margin: 0 0 1.5em; }
+.stamp {
+  display: flex; width: fit-content; align-items: center; gap: 8px;
+  font: 500 .78rem/1 var(--mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.stamp::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--orb); box-shadow: 0 0 10px var(--orb); }
+@media (min-width: 900px) {
+  .stamp { position: absolute; right: calc(100% + 2.2rem); top: .5em; margin: 0; white-space: nowrap; }
+}
+.beat.short {
+  font: italic 400 clamp(2rem, 4.6vw, 3.6rem)/1.05 var(--display);
+  letter-spacing: -.02em;
+  margin-block: 1.2em 0;
+  max-width: 14em;
+}
+.beat.short.wide { margin-left: calc(var(--indent) * -.6); }
+
+/* forgetting */
+.fade { transition: opacity 1s ease, filter 1s ease; }
+.fade.gone { opacity: .26; filter: blur(2px); }
+.fade.gone:hover { opacity: 1; filter: none; }
+
+/* keeping */
+.keep {
+  background-image: linear-gradient(var(--glow), var(--glow));
+  background-repeat: no-repeat;
+  background-position: 0 90%;
+  background-size: 0% 100%;
+  transition: background-size 1s cubic-bezier(.6,.05,.25,1), color .4s ease .2s, box-shadow 1s ease;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: .02em .05em;
+  margin-inline: -.05em;
+  border-radius: 2px;
+}
+.keep.kept { background-size: 100% 100%; color: var(--kept-ink); box-shadow: 0 0 28px color-mix(in srgb, var(--glow) 55%, transparent); }
+.fade.gone .keep.kept { filter: none; }
+
+/* ---------- editor aside ---------- */
+.snippet {
+  margin: 2.4em 0;
+  border-radius: 10px;
+  font: 400 .84rem/1.8 var(--mono);
+  overflow-x: auto;
+  background: color-mix(in srgb, var(--fg) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+}
+.snippet pre { margin: 0; padding: 22px 24px; }
+.snippet .dim { opacity: .6; }
+.snippet .hl { background: var(--glow); color: var(--kept-ink); box-shadow: 0 0 24px color-mix(in srgb, var(--glow) 50%, transparent); }
+.tools-line { font: 400 .8rem/1.9 var(--mono); letter-spacing: .02em; opacity: .8; }
+
+/* ---------- memo ---------- */
+.memo-wrap { max-width: 46rem; margin-left: var(--indent); position: relative; }
+.memo {
+  position: relative;
+  background: var(--paper);
+  color: var(--paper-ink);
+  font: 400 .92rem/1.72 var(--mono);
+  padding: clamp(24px, 4vw, 44px);
+  transform: rotate(-1.4deg);
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 30px 60px -20px rgba(0,0,0,.55), 0 60px 120px -40px rgba(0,0,0,.5);
+  background-image: repeating-linear-gradient(transparent 0 27px, rgba(27,27,31,.05) 27px 28px);
+}
+.memo-head { display: grid; grid-template-columns: 4.5em 1fr; gap: 2px 12px; margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1px solid rgba(27,27,31,.25); }
+.memo-head span:nth-child(odd) { opacity: .55; }
+.memo ol { margin: 0; padding-left: 2em; display: grid; gap: 16px; }
+.memo li::marker { opacity: .5; }
+.memo .keep.kept { box-shadow: none; }
+.stampmark {
+  position: absolute;
+  top: clamp(10px, 3vw, 28px);
+  right: clamp(8px, 3vw, 30px);
+  transform: rotate(9deg);
+  font: 500 .72rem/1.25 var(--mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  padding: 8px 12px;
+  text-align: center;
+  opacity: .82;
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+}
+.leak { display: block; margin-top: 10px; padding: 10px 12px; background: rgba(27,27,31,.07); overflow-x: auto; white-space: nowrap; }
+.leak .secret { transition: opacity .25s ease; }
+.leak .redacted { background: var(--paper-ink); color: var(--paper); padding: 1px 7px; }
+.memo-foot { margin-top: 26px; opacity: .65; }
+
+/* ---------- reveal ---------- */
+.reveal { padding-block: clamp(90px, 18vh, 200px) clamp(60px, 10vh, 110px); }
+.reveal h2 { font: italic 400 clamp(3.6rem, 12vw, 11rem)/.86 var(--display); margin: 0; letter-spacing: -.04em; }
+.tally { margin: 26px 0 0 var(--indent); max-width: 30em; font-size: 1.28rem; }
+.tally b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.poster { list-style: none; margin: clamp(56px, 9vh, 96px) 0 0; padding: 0; max-width: calc(100% - 20vmin); display: grid; gap: clamp(22px, 3.6vw, 40px); }
+.poster li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 20px; align-items: baseline; transition: opacity .6s ease; }
+.poster small { font: 500 .72rem/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.poster small b { display: block; font-weight: 500; opacity: 1; }
+.poster q { quotes: none; font-family: var(--display); letter-spacing: -.025em; line-height: 1; max-width: 17em; text-wrap: balance; }
+.poster q::before, .poster q::after { content: none; }
+.poster li:nth-child(1) q { font-size: clamp(2rem, 5vw, 4.4rem); font-style: italic; }
+.poster li:nth-child(2) q { font-size: clamp(1.7rem, 3.6vw, 3.1rem); }
+.poster li:nth-child(3) q { font-size: clamp(1.9rem, 4.4vw, 3.8rem); font-style: italic; }
+.poster li:nth-child(2) { margin-left: calc(var(--indent) * .7); }
+.poster li:nth-child(4) q { font-size: clamp(1.6rem, 3.3vw, 2.8rem); }
+.poster li:nth-child(4) { margin-left: calc(var(--indent) * 1.2); }
+.poster li:nth-child(5) q { font-size: clamp(2rem, 4.8vw, 4.2rem); font-style: italic; }
+.poster li.missed { opacity: .32; }
+.poster li.missed q { text-decoration: line-through; text-decoration-thickness: 2px; }
+.after { margin: clamp(56px, 9vh, 96px) 0 0 var(--indent); max-width: var(--col); }
+.after p + p { margin-top: 1em; }
+.estimate { font: 400 .82rem/1.7 var(--mono); opacity: .75; }
+
+/* ---------- form ---------- */
+.ask { padding-block: clamp(90px, 18vh, 200px) clamp(90px, 16vh, 180px); }
+.ask h2 { font: 400 clamp(2.8rem, 8vw, 7.4rem)/.9 var(--display); margin: 0; letter-spacing: -.035em; max-width: 10em; text-wrap: balance; }
+.ask h2 em { font-style: italic; display: block; margin-left: var(--indent); }
+.ask .sub { margin: 30px 0 0 var(--indent); max-width: 32em; }
+form { margin: 48px 0 0 var(--indent); max-width: 46rem; display: grid; gap: 26px; }
+.line { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+label { display: grid; gap: 6px; font: 500 .72rem/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+input, select, textarea {
+  font: italic 400 1.6rem/1.3 var(--display);
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--fg);
+  border-radius: 0;
+  padding: 6px 0 8px;
+  width: 100%;
+  letter-spacing: -.01em;
+}
+select { appearance: none; cursor: pointer; }
+select option { color: #1B1B1F; background: #fff; font-style: normal; }
+textarea { resize: vertical; min-height: 2.4em; }
+input:focus, select:focus, textarea:focus { outline: none; background: color-mix(in srgb, var(--glow) 40%, transparent); }
+.go { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
+button {
+  font: italic 500 1.7rem/1 var(--display);
+  background: var(--fg); color: var(--bg);
+  border: 0; border-radius: 99px;
+  padding: 20px 38px 21px;
+  cursor: pointer;
+  transition: transform .25s cubic-bezier(.3,.6,.2,1), background-color .25s ease, color .25s ease, box-shadow .25s ease;
+}
+button:hover { background: var(--glow); color: var(--kept-ink); transform: translateY(-2px) rotate(-1.5deg); box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--kept-ink) 60%, transparent); }
+button[disabled] { opacity: .6; cursor: progress; transform: none; }
+.status { font: 500 .85rem/1.4 var(--mono); }
+.status.ok { background: var(--glow); color: var(--kept-ink); padding: 6px 10px; border-radius: 99px; }
+.status.err { text-decoration: underline wavy; text-underline-offset: 4px; }
+
+footer { padding: 30px clamp(16px, 4vw, 48px) 46px; display: flex; justify-content: space-between; gap: 12px 32px; flex-wrap: wrap; font: 400 .76rem/1.5 var(--mono); border-top: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); }
+
+@media (max-width: 640px) {
+  body { font-size: 1.1rem; }
+  .line { grid-template-columns: 1fr; }
+  .meter .t { display: none; }
+  .poster { max-width: none; }
+  .poster li { grid-template-columns: 1fr; gap: 8px; margin-left: 0 !important; }
+  .h-a { margin-left: 0; font-size: clamp(1.7rem, 8vw, 2.4rem); max-width: 11em; }
+  .h-c { padding-right: 0; }
+  .beat.short.wide { margin-left: 0; }
+  .memo { transform: rotate(-.6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade, .keep, .kept-count, .poster li, .leak .secret, .h-b .l, button { transition: none; }
+  .fade.gone { filter: none; }
+  .h-b .l.lost { filter: none; transform: none; }
+}
+/* Bodoni at its display optical size has hairlines that vanish on screen
+   (letters read as broken). Pin a text-size optical size and more weight
+   so every large line keeps solid strokes. */
+.word, .h-b, .beat.short, .reveal h2, .poster q, .ask h2, button, input, select, textarea {
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 26;
+}
+.h-b, .reveal h2, .poster q, .ask h2 em, .beat.short { font-weight: 500; }
+.ask h2 { font-weight: 450; }
+</style>
+
+<div class="sky" aria-hidden="true">
+  <canvas id="dust"></canvas>
+  <div class="orb"></div>
+</div>
+
+<header class="bar">
+  <a class="word" href="#top">verya</a>
+  <div class="meter">
+    <span class="t">on page <b id="clock">00:00</b></span>
+    <span class="kept-count" id="kept-wrap">kept <b id="kept">0</b> / 5</span>
+  </div>
+</header>
+
+<main class="page" id="top">
+
+  <section class="open" data-bg="#FF5A36" data-fg="#1A0A06" data-glow="#FFF3B0" data-orb="#FFE66B" data-y="18" data-dust=".7">
+    <h1 aria-label="This page will forget almost everything you read.">
+      <span class="h-a" aria-hidden="true">This page will forget almost</span>
+      <span class="h-b" id="everything" aria-hidden="true">everything</span>
+      <span class="h-c" aria-hidden="true">you read.</span>
+    </h1>
+    <p>That's what happens to every AI chat your team closes. Keep scrolling and watch what stays.</p>
+    <span class="down" aria-hidden="true">scroll</span>
+  </section>
+
+  <section class="chapter" data-bg="#FFA21F" data-fg="#1F1204" data-glow="#FFFFFF" data-orb="#FFF4C2" data-y="34">
+    <div class="col">
+      <p class="beat fade"><span class="stamp">Thu 3:30 pm</span>Priya had been going back and forth with the AI for forty minutes. The session refactor worked on her laptop and logged out every user on staging. Nine attempts in, she got it: <span class="keep" data-k="1">ship a release that reads both formats before one that writes the new one</span>. Nobody got logged out.</p>
+      <p class="beat fade"><span class="stamp">Thu 4:52 pm</span>She pushed the fix and closed the tab.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-bg="#5B2A86" data-fg="#FBEAFF" data-glow="#FFD84D" data-orb="#FF8A5B" data-y="80">
+    <div class="col">
+      <p class="beat fade"><span class="stamp">3 weeks later</span>Marcus, two desks away, started a similar migration on the billing service. His AI had never heard of Priya. He lost the afternoon to the same logout bug, and eventually found the same fix.</p>
+      <p class="beat short wide fade">Nobody did anything wrong. The fix just had nowhere to go.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-bg="#12123A" data-fg="#E8E6FF" data-glow="#7CF7E4" data-orb="#EDEBFF" data-y="22">
+    <div class="col">
+      <p class="beat fade">It isn't only engineers. A PM spends an hour getting AI to write specs the way the team likes them. An analyst works out which questions produce SQL she can trust. A writer finds the prompt that matches the house style. All of it ends up in one person's chat history, and <span class="keep" data-k="2">the prompt that finally worked is the most useful thing nobody saves</span>.</p>
+      <p class="beat fade">A wiki won't save you. Nobody stops in the middle of a bug to write a page, and if they did, nobody would find it at the moment they needed it.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-bg="#0A3B3D" data-fg="#E3FFF7" data-glow="#FFE14D" data-orb="#BFFCEB" data-y="22">
+    <div class="col">
+      <p class="beat fade">Verya's Knowledge Engine sits inside the editor your team already uses. When a session ends, <span class="keep" data-k="3">it keeps the part that worked and drops the rest</span>: a short card with the problem, the fix and the prompt that got there.</p>
+      <p class="beat fade">When someone starts similar work, <span class="keep" data-k="4">it puts that card in their AI session before they think to ask</span>. Marcus's AI would have known about Priya's fix before he typed a word.</p>
+      <div class="snippet fade" aria-label="Example of what Marcus's AI would have received">
+<pre><span class="dim">// recalled into Marcus's session · billing-service</span>
+<span class="dim">// from a teammate, 3 weeks ago · reused 14×</span>
+
+<span class="hl">When changing how sessions are stored,
+ship a release that reads both formats
+before one that writes the new one.</span></pre>
+      </div>
+      <p class="tools-line fade">Works in Cursor · Claude Code · GitHub Copilot · Antigravity · any MCP client. Setup takes about two minutes.</p>
+    </div>
+  </section>
+
+  <section class="chapter" id="security" data-bg="#1A1D2B" data-fg="#E9ECF5" data-glow="#FFE14D" data-orb="#C9CFE6" data-y="20">
+    <div class="memo-wrap fade">
+      <div class="memo">
+        <span class="stampmark" aria-hidden="true">For your<br>security team</span>
+        <div class="memo-head">
+          <span>To</span><span>Your security team</span>
+          <span>From</span><span>Verya</span>
+          <span>Re</span><span>The questions you were going to ask</span>
+        </div>
+        <ol>
+          <li>Every record belongs to one organization, and the database itself refuses queries that cross organizations. We test it with two companies' data side by side.</li>
+          <li>Secrets are stripped three times: on the developer's machine, on arrival, and by a model that catches the ones written out in plain language. Like this one:
+            <code class="leak" id="leak">OPENAI_API_KEY=<span class="secret" id="secret">sk-live-4f9aE21c77b0d8Q3m</span></code>
+          </li>
+          <li><span class="keep" data-k="5">Your content stays inside the service that processed it.</span> Verya's shared sign-in and billing systems see who used what and how much, never what was written.</li>
+          <li>People sign in through your identity provider (Okta, Microsoft Entra ID or Google Workspace) with SAML, and SCIM removes leavers the same day your IT team does.</li>
+          <li>Need your own servers and database? The dedicated tier is the same product, locked to your organization.</li>
+          <li>Export everything whenever you like. Ask us to delete it and you get a signed receipt covering every Verya service.</li>
+        </ol>
+        <p class="memo-foot">Pilot teams get the architecture documents behind every line above.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="reveal" data-bg="#FFD49A" data-fg="#1A0F24" data-glow="#FFFFFF" data-orb="#FF7A45" data-y="74" data-dust="0">
+    <h2>Session ended.</h2>
+    <p class="tally" id="tally">You read about <b id="words">800</b> words on this page. It forgot most of them and kept these five.</p>
+    <ol class="poster" id="poster">
+      <li data-k="1"><small>Debugging recipe<b data-at="1">—</b></small><q>Ship a release that reads both formats before one that writes the new one.</q></li>
+      <li data-k="2"><small>The problem<b data-at="2">—</b></small><q>The prompt that finally worked is the most useful thing nobody saves.</q></li>
+      <li data-k="3"><small>Capture<b data-at="3">—</b></small><q>It keeps the part that worked and drops the rest.</q></li>
+      <li data-k="4"><small>Recall<b data-at="4">—</b></small><q>It puts that card in their AI session before they think to ask.</q></li>
+      <li data-k="5"><small>Security<b data-at="5">—</b></small><q>Your content stays inside the service that processed it.</q></li>
+    </ol>
+    <div class="after">
+      <p>That's the whole product. Your team closes hundreds of AI sessions a week, and Verya keeps what's worth keeping from each of them.</p>
+      <p class="estimate">Our estimate, which the pilot is built to test on your own work: about 2¾ hours back per engineer, per week.</p>
+    </div>
+  </section>
+
+  <section class="ask" id="pilot" data-bg="#1F2BD6" data-fg="#F3F1FF" data-glow="#FFE14D" data-orb="#FFD84D" data-y="24" data-dust="0">
+    <h2>Leave your work email. <em>We'll remember it.</em></h2>
+    <p class="sub">We're running the Knowledge Engine with a small group of teams before general release. Pilot teams get hands-on setup, a dedicated deployment if their security review needs one, and a scorecard of time saved on their own work.</p>
+    <!-- data-pilot-email: where applications go when the page is hosted on
+         its own (e.g. GitHub Pages). Leave empty until a team inbox exists. -->
+    <form id="pilot-form" data-pilot-email="" novalidate>
+      <div class="line">
+        <label for="f-email">Work email<input id="f-email" name="email" type="email" autocomplete="email" required></label>
+        <label for="f-company">Company<input id="f-company" name="company" autocomplete="organization" required></label>
+      </div>
+      <div class="line">
+        <label for="f-name">Your name<input id="f-name" name="name" autocomplete="name" required></label>
+        <label for="f-size">Team size
+          <select id="f-size" name="size" required>
+            <option value="">Choose</option>
+            <option>1–10</option><option>11–50</option><option>51–200</option><option>200+</option>
+          </select>
+        </label>
+      </div>
+      <label for="f-note">One thing you wish your team's AI remembered (optional)
+        <textarea id="f-note" name="note" rows="1"></textarea>
+      </label>
+      <div class="go">
+        <button type="submit" id="f-submit">Remember me</button>
+        <span class="status" id="f-status" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <span>verya · the enterprise AI platform</span>
+  <span>Knowledge Engine is the first product on it. It's in pilot now.</span>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  var start = Date.now();
+  var clock = document.getElementById("clock");
+  function mmss(ms) {
+    var s = Math.floor(ms / 1000), m = Math.floor(s / 60);
+    return String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  }
+  setInterval(function () { clock.textContent = mmss(Date.now() - start); }, 1000);
+
+  // ---- the headline forgets a few of its own letters
+  var ev = document.getElementById("everything");
+  var word = ev.textContent;
+  ev.textContent = "";
+  var letters = word.split("").map(function (ch) {
+    var s = document.createElement("span");
+    s.className = "l"; s.textContent = ch; ev.appendChild(s); return s;
+  });
+  [2, 5, 8].forEach(function (i, n) {
+    setTimeout(function () { letters[i].classList.add("lost"); }, reduce ? 0 : 1400 + n * 700);
+  });
+
+  // ---- sky colour follows the story's time of day
+  function hex(h) { h = h.replace("#", ""); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+  // Blend in OKLCH, not RGB: RGB midpoints between warm and cool colours turn
+  // to mud, OKLCH keeps saturation by travelling round the hue wheel.
+  function lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function gam(c) { c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return Math.round(Math.min(1, Math.max(0, c)) * 255); }
+  function toLch(rgb) {
+    var r = lin(rgb[0]), g = lin(rgb[1]), b = lin(rgb[2]);
+    var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    var L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+    var A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+    var B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+    return [L, Math.sqrt(A * A + B * B), Math.atan2(B, A)];
+  }
+  function fromLch(p) {
+    var A = p[1] * Math.cos(p[2]), B = p[1] * Math.sin(p[2]);
+    var l = Math.pow(p[0] + 0.3963377774 * A + 0.2158037573 * B, 3);
+    var m = Math.pow(p[0] - 0.1055613458 * A - 0.0638541728 * B, 3);
+    var s = Math.pow(p[0] - 0.0894841775 * A - 1.2914855480 * B, 3);
+    return [gam(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+            gam(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+            gam(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
+  }
+  function mix(a, b, t) {
+    if (t <= 0) return a; if (t >= 1) return b;
+    var p = toLch(a), q = toLch(b);
+    var dh = q[2] - p[2];
+    if (dh > Math.PI) dh -= 2 * Math.PI; else if (dh < -Math.PI) dh += 2 * Math.PI;
+    // a near-grey colour has no meaningful hue; borrow the other one's
+    if (p[1] < 0.02) p[2] = q[2], dh = 0; else if (q[1] < 0.02) dh = 0;
+    return fromLch([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + dh * t]);
+  }
+  function css(c) { return "rgb(" + c.join(",") + ")"; }
+  var stops = Array.prototype.map.call(document.querySelectorAll("[data-bg]"), function (el) {
+    return { el: el, bg: hex(el.dataset.bg), fg: hex(el.dataset.fg), glow: hex(el.dataset.glow), orb: hex(el.dataset.orb),
+      y: +el.dataset.y, dust: el.dataset.dust == null ? 1 : +el.dataset.dust };
+  });
+  var fgNow = stops[0].fg, dustNow = stops[0].dust;
+  function smooth(x) { var t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); }
+  // A section owns the colour while it holds the middle of the screen. Colours
+  // only blend in a short band around each section boundary, so the sky always
+  // matches the words being read.
+  function paint() {
+    var probe = window.scrollY + window.innerHeight * 0.5;
+    var band = Math.min(window.innerHeight * 0.22, 170);
+    var c = { bg: stops[0].bg, fg: stops[0].fg, glow: stops[0].glow, orb: stops[0].orb, y: stops[0].y, dust: stops[0].dust };
+    for (var k = 1; k < stops.length; k++) {
+      var edge = stops[k].el.getBoundingClientRect().top + window.scrollY;
+      var w = smooth((probe - (edge - band)) / (2 * band));
+      if (w <= 0) break;
+      var s = stops[k];
+      c = { bg: mix(c.bg, s.bg, w), fg: mix(c.fg, s.fg, w), glow: mix(c.glow, s.glow, w), orb: mix(c.orb, s.orb, w),
+        y: c.y + (s.y - c.y) * w, dust: c.dust + (s.dust - c.dust) * w };
+    }
+    fgNow = c.fg; dustNow = c.dust;
+    root.style.setProperty("--bg", css(c.bg));
+    root.style.setProperty("--fg", css(c.fg));
+    root.style.setProperty("--glow", css(c.glow));
+    root.style.setProperty("--orb", css(c.orb));
+    root.style.setProperty("--orb-y", c.y + "vh");
+  }
+
+  // ---- forgetting: text fades as it rises past the top quarter of the screen
+  var fades = Array.prototype.slice.call(document.querySelectorAll(".fade"));
+  function forget() {
+    var line = window.innerHeight * 0.26;
+    fades.forEach(function (el) { el.classList.toggle("gone", el.getBoundingClientRect().bottom < line); });
+  }
+  var ticking = false;
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; paint(); forget(); }); } }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  paint(); forget();
+
+  // ---- keeping: a phrase is kept once it passes through the middle of the screen
+  var keptEl = document.getElementById("kept");
+  var keptWrap = document.getElementById("kept-wrap");
+  var kept = {};
+  function keep(el) {
+    var k = el.getAttribute("data-k");
+    if (kept[k]) return;
+    kept[k] = Date.now() - start;
+    el.classList.add("kept");
+    keptEl.textContent = Object.keys(kept).length;
+    var at = document.querySelector('[data-at="' + k + '"]');
+    if (at) at.textContent = "kept at " + mmss(kept[k]);
+    if (!reduce) {
+      keptWrap.classList.add("pulse");
+      setTimeout(function () { keptWrap.classList.remove("pulse"); }, 1000);
+    }
+  }
+  var keeps = document.querySelectorAll(".keep");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) keep(e.target); });
+    }, { rootMargin: "-38% 0px -38% 0px" });
+    keeps.forEach(function (el) { io.observe(el); });
+  } else { keeps.forEach(keep); }
+
+  // ---- the secret gets redacted once it's on screen
+  var secret = document.getElementById("secret");
+  function redact() {
+    if (secret.dataset.done) return;
+    secret.dataset.done = "1";
+    secret.style.opacity = "0";
+    setTimeout(function () {
+      secret.className = "redacted";
+      secret.textContent = "[REDACTED: API key]";
+      secret.style.opacity = "1";
+    }, reduce ? 0 : 260);
+  }
+  if ("IntersectionObserver" in window) {
+    var lio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { setTimeout(redact, reduce ? 0 : 900); lio.disconnect(); } });
+    }, { threshold: 1 });
+    lio.observe(document.getElementById("leak"));
+  } else { redact(); }
+
+  // ---- the tally at the end
+  var words = 0;
+  document.querySelectorAll(".chapter").forEach(function (s) {
+    words += (s.innerText || s.textContent).trim().split(/\s+/).length;
+  });
+  var rounded = Math.round(words / 50) * 50;
+  document.getElementById("words").textContent = rounded;
+  var tally = document.getElementById("tally");
+  var poster = document.getElementById("poster");
+  if ("IntersectionObserver" in window) {
+    var rio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var n = Object.keys(kept).length;
+        tally.innerHTML = "You spent <b>" + mmss(Date.now() - start) + "</b> here and read about <b>" + rounded +
+          "</b> words. The page forgot most of them. " +
+          (n === 5 ? "It kept these five." : "It kept <b>" + n + "</b> of these five. You scrolled past the rest too fast.");
+        poster.querySelectorAll("li").forEach(function (li) {
+          var k = li.getAttribute("data-k");
+          li.classList.toggle("missed", !(k in kept));
+          if (!(k in kept)) li.querySelector("[data-at]").textContent = "missed";
+        });
+      });
+    }, { threshold: .2 });
+    rio.observe(document.getElementById("reveal"));
+  }
+
+  // ---- drifting fragments of forgotten prompts
+  var canvas = document.getElementById("dust");
+  var ctx = canvas.getContext("2d");
+  var lines = [
+    "why does staging log everyone out", "write the PRD in our format", "make it sound like our docs",
+    "SELECT region, sum(arr) FROM ...", "try again but keep the tests", "explain this race condition",
+    "break this epic into tickets", "what did we decide about retries", "rewrite without breaking sessions",
+    "summarise the incident for execs", "which index is Postgres ignoring", "same as last time, but for billing",
+    "turn this into a changelog", "why is this flaky only in CI", "use the tone from the onboarding guide"
+  ];
+  var bits = [], W = 0, H = 0, dpr = 1;
+  function size() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function seed() {
+    var n = W < 640 ? 12 : 24;
+    bits = [];
+    for (var i = 0; i < n; i++) {
+      bits.push({ t: lines[i % lines.length], x: Math.random() * W * 0.9, y: Math.random() * H,
+        v: 5 + Math.random() * 9, a: 0.07 + Math.random() * 0.09, s: 11 + Math.random() * 4, vis: 0 });
+    }
+  }
+  // Fragments dissolve when they drift near anything meant to be read.
+  var readable = Array.prototype.slice.call(document.querySelectorAll(
+    ".bar, .open h1, .open p, .down, .col .beat, .snippet, .tools-line, .memo, .reveal h2, .tally, .poster q, .poster small, .after, .ask h2, .ask .sub, form"));
+  function hits(rects, x, y, w, h) {
+    for (var r = 0; r < rects.length; r++) {
+      var q = rects[r];
+      if (x < q.right + 18 && x + w > q.left - 18 && y < q.bottom + 14 && y + h > q.top - 14) return true;
+    }
+    return false;
+  }
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    ctx.clearRect(0, 0, W, H);
+    var rects = [];
+    readable.forEach(function (el) {
+      var q = el.getBoundingClientRect();
+      if (q.bottom > -40 && q.top < H + 40) rects.push(q);
+    });
+    ctx.fillStyle = css(fgNow);
+    for (var i = 0; i < bits.length; i++) {
+      var b = bits[i];
+      if (!reduce) b.y -= b.v * dt;
+      if (b.y < -20) { b.y = H + 20; b.x = Math.random() * W * 0.9; b.t = lines[(Math.random() * lines.length) | 0]; b.vis = 0; }
+      ctx.font = b.s + 'px "JetBrains Mono", ui-monospace, monospace';
+      var w = ctx.measureText(b.t).width;
+      var target = hits(rects, b.x, b.y - b.s, w, b.s * 1.3) ? 0 : 1;
+      b.vis = reduce ? target : b.vis + (target - b.vis) * Math.min(1, dt * 3);
+      var fadeTop = Math.min(1, b.y / (H * 0.35));
+      var alpha = b.a * Math.max(0, fadeTop) * b.vis * dustNow;
+      if (alpha < 0.004) continue;
+      ctx.globalAlpha = alpha;
+      ctx.fillText(b.t, b.x, b.y);
+    }
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  size(); seed();
+  window.addEventListener("resize", function () { size(); seed(); if (reduce) frame(performance.now()); });
+  if (reduce) { frame(performance.now()); window.addEventListener("scroll", function () { frame(performance.now()); }, { passive: true }); }
+  else requestAnimationFrame(frame);
+
+  // ---- pilot form
+  var form = document.getElementById("pilot-form");
+  var statusEl = document.getElementById("f-status");
+  var submit = document.getElementById("f-submit");
+  // Applications are stored when this page runs as a Verya preview with a
+  // storage backend; the standalone site needs its own endpoint wired here.
+  var dbP = null, userP = null;
+  if (window.claude && typeof window.claude.use === "function") {
+    dbP = window.claude.use("db");
+    userP = window.claude.use("user");
+  }
+  function say(msg, kind) { statusEl.textContent = msg; statusEl.className = "status" + (kind ? " " + kind : ""); }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var app = {
+      email: String(fd.get("email") || "").trim(),
+      company: String(fd.get("company") || "").trim(),
+      name: String(fd.get("name") || "").trim(),
+      size: String(fd.get("size") || ""),
+      note: String(fd.get("note") || "").trim().slice(0, 2000)
+    };
+    var bad =
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(app.email) ? ["f-email", "Enter a work email, like you@company.com."] :
+      !app.company ? ["f-company", "Add your company."] :
+      !app.name ? ["f-name", "Add your name."] :
+      !app.size ? ["f-size", "Choose a team size."] : null;
+    if (bad) { say(bad[1], "err"); document.getElementById(bad[0]).focus(); return; }
+
+    submit.disabled = true;
+    say("Saving…");
+    try {
+      var db = dbP ? await dbP : null;
+      var user = userP ? await userP : null;
+      var uid = user ? await user.id() : null;
+      if (!db || !uid) {
+        // Hosted on its own: hand the application to the visitor's email app.
+        var inbox = (form.dataset.pilotEmail || "").trim();
+        if (!inbox) { say("Online applications aren't switched on yet. Reach out to the Verya team to join the pilot.", "err"); return; }
+        var body = "Name: " + app.name + "\nWork email: " + app.email + "\nCompany: " + app.company +
+          "\nTeam size: " + app.size + (app.note ? "\n\nWhat we'd want our AI to remember:\n" + app.note : "");
+        window.location.href = "mailto:" + encodeURIComponent(inbox) +
+          "?subject=" + encodeURIComponent("Verya pilot application: " + app.company) +
+          "&body=" + encodeURIComponent(body);
+        say("Your email app should open with the application filled in. Send it and we'll be in touch.", "ok");
+        return;
+      }
+      app.submittedAt = new Date().toISOString();
+      app.keptOnPage = Object.keys(kept).length;
+      await db.doc("applications/" + uid).set(app);
+      say("Kept. The Verya team will be in touch.", "ok");
+      form.reset();
+    } catch (err) {
+      var code = err && err.code;
+      if (code === "unavailable") say("Couldn't reach the server. Try again in a moment.", "err");
+      else if (code === "invalid_argument") say("Your account can't submit from this page. Ask whoever shared it for access.", "err");
+      else say("That didn't save. Try again.", "err");
+    } finally {
+      submit.disabled = false;
+    }
+  });
+})();
+</script>
